@@ -1,32 +1,21 @@
-//Create a black world
-  //Should be size of window
-//Create a ship
-  //Ship is a triangle
-//Ship can move
-  //Left and right rotates respectively
-  //Up and Down move up and down
-//Ship can shoot
-  //Pressing spacebar shoots a pellet
-//Create an asteroid
-  //Asteroid is a randomly generate shape within a surface area range
-
-
 ctx = document.getElementById("view").getContext("2d");
-world = new World(ctx, 500, 500, "white");
+world = new World(ctx, 1000, 500, "white");
 ship = new Ship(100, 100);
+asteroid = new Asteroid(0, 75);
 world.addShape(ship);
+world.addShape(asteroid);
 var keys = {left: false, up: false, right: false, space: false};
 
 document.onkeydown = keyDown;
 document.onkeyup = keyUp;
 
+
 function loop(){
   world.update();
-
   handleInputs();
   handleBoundaryOverflow();
   handleBullets();
-
+  handleCollisions();
   world.render();
 }
 
@@ -46,10 +35,10 @@ function handleInputs(){
   if(keys.left){
     ship.rotate("left");
   }
-};
+}
 
 function keyDown(e) {
-    e = e || window.event;
+  e = e || window.event;
 
   if (e.keyCode == '37') {
     keys.left = true;
@@ -63,7 +52,7 @@ function keyDown(e) {
   else if (e.keyCode == '32') {
     keys.space = true;
     world.addShape(ship.makeBullet());
-    console.log(world.shapes)
+    console.log(world.shapes);
   }
 }
 
@@ -112,7 +101,7 @@ function handleBoundaryOverflow(){
       }
     }
   }
-};
+}
 
 function handleBullets(){
   for (var i = 0; i < world.shapes.length; i++) {
@@ -122,5 +111,49 @@ function handleBullets(){
     }
   };
 }
+
+function handleCollisions(){
+  //get the lines for each asteroid.
+  var lines = [];
+  var nodes = [];
+  var collision = false;
+  var test_point;
+  var test_line;
+  var left_side_count = 0;
+  var right_side_count = 0;
+
+  for (var i = 0; i < asteroid.points.length; i++) {
+    if (i === asteroid.points.length-1) {
+      lines.push(new Line(asteroid.points[i], asteroid.points[0]));
+    }
+    else{
+      lines.push(new Line(asteroid.points[i],asteroid.points[i+1]));
+    }
+  };
+
+  for (var i = 0; i < ship.points.length; i++) {
+    test_point = ship.points[i];
+    for (var j = 0; j < lines.length; j++) {
+      test_line = lines[j];
+      if( ( (test_point.y < test_line.point1.y) && (test_point.y > test_line.point2.y ) ) || ( (test_point.y < test_line.point2.y) && (test_point.y > test_line.point1.y) ) ){
+        nodes.push( test_line.xValueAt(test_point.y) );
+      }
+    };
+    if(nodes.length > 0){
+      for (var j = 0; j < nodes.length; j++) {
+        if( nodes[j] > test_point.x ){
+          ++right_side_count;
+        }
+        else{
+          ++left_side_count;
+        }
+      };
+      if( (right_side_count % 2 != 0) && (left_side_count % 2 != 0) && (left_side_count === right_side_count) ){
+        //console.log("collision found at: " + test_point.x + ", " + test_point.y);
+      }
+    }
+  };
+}
+
 
 setInterval(loop, (world.stepAmt)*1000);

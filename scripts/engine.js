@@ -33,7 +33,7 @@ World = function(ctx, width, height, color){
   };
   this.render = function(){
     //TODO: Find better way to clear screen
-    this.resize(this.width, this.height);
+    this.ctx.clearRect( 0, 0, this.width, this.height );
     if(this.shapes.length){
       for (var i = 0; i < this.shapes.length; i++) {
         this.shapes[i].draw(this.ctx);
@@ -80,6 +80,17 @@ Point = function(x, y){
   }
 };
 
+Line = function(point1, point2){
+  this.point1 = point1;
+  this.point2 = point2;
+  this.slope = (point2.y - point1.y) / (point2.x - point1.x);
+  this.y_int = point1.y - this.slope * point1.x;
+  this.xValueAt = function(y){
+    return (y - this.y_int) / this.slope;
+  };
+};
+
+
 Shape = function(x,y){
   this.origin = new Point(x, y);
   this.points = [];
@@ -115,6 +126,7 @@ Shape = function(x,y){
   };
   this.draw = function(ctx){
     for(var i = 0; i < this.points.length; i++){
+      ctx.beginPath();
       ctx.moveTo(this.points[i].x, this.points[i].y);
       if(i === this.points.length - 1){
         ctx.lineTo(this.points[0].x, this.points[0].y);
@@ -163,7 +175,7 @@ Ship = function (x, y){
   this.move(this.origin);
 };
 
-function Bullet(x, y){
+Bullet = function(x, y){
   this.lifetime = 0.5;
   this.kill = false;
   this.timer = 0;
@@ -185,4 +197,16 @@ function Bullet(x, y){
   this.move(this.origin);
 };
 
+Asteroid = function(x, y){
+  this.__proto__ = new Shape(x, y);
+  this.kill = false;
+  this.vel = (new Point(1, 0)).multiply(100);
+
+  this.points.push(new Point(0,50));
+  this.points.push(new Point(50,0));
+  this.points.push(new Point(0,-50));
+  this.points.push(new Point(-50,0));
+  this.move(this.origin);
+  this.vel.rotate(Math.random()*360, new Point(0, 0));
+}
 
