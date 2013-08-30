@@ -13,8 +13,12 @@ World = function(ctx, width, height, color){
       this.shapes.push(shape);
     }
   };
-  this.removeShape = function(index){
-    this.shapes.splice(index, 1);
+  this.removeShape = function(shape){
+    for (var i = 0; i < this.shapes.length; i++) {
+      if(this.shapes[i].id === shape.id){
+        this.shapes.splice(i,1);
+      }
+    };
   };
   this.update = function(){
     for (var i = 0; i < this.shapes.length; i++) {
@@ -39,6 +43,50 @@ World = function(ctx, width, height, color){
         this.shapes[i].draw(this.ctx);
       };
     }
+  };
+
+  this.testForCollision = function(shape1, shape2){
+    var lines = [];
+    var nodes = [];
+    var collision = false;
+    var test_point;
+    var test_line;
+    var left_side_count = 0;
+    var right_side_count = 0;
+
+    for (var i = 0; i < shape2.points.length; i++) {
+      if (i === shape2.points.length-1) {
+        lines.push(new Line(shape2.points[i], shape2.points[0]));
+      }
+      else{
+        lines.push(new Line(shape2.points[i],shape2.points[i+1]));
+      }
+    };
+
+    for (var i = 0; i < shape1.points.length; i++) {
+      test_point = shape1.points[i];
+      for (var j = 0; j < lines.length; j++) {
+        test_line = lines[j];
+        if( ( (test_point.y < test_line.point1.y) && (test_point.y > test_line.point2.y ) ) || ( (test_point.y < test_line.point2.y) && (test_point.y > test_line.point1.y) ) ){
+          nodes.push( test_line.xValueAt(test_point.y) );
+        }
+      };
+      if(nodes.length > 0){
+        for (var j = 0; j < nodes.length; j++) {
+          if( nodes[j] > test_point.x ){
+            ++right_side_count;
+          }
+          else{
+            ++left_side_count;
+          }
+        };
+        if( (right_side_count % 2 != 0) && (left_side_count % 2 != 0) && (left_side_count === right_side_count) ){
+          return true;
+        }
+      }
+    };
+
+  return false;
   };
 
   this.setBackground(this.background)
@@ -139,8 +187,8 @@ Shape = function(x,y){
   };
 };
 
-Ship = function (x, y){
-
+function Ship(x, y){
+  this.name = "ship";
   this.__proto__ = new Shape(x, y);
 
   this.rotate = function(direction){
@@ -176,10 +224,14 @@ Ship = function (x, y){
 };
 
 Bullet = function(x, y){
+  this.name = "bullet"
   this.lifetime = 0.5;
   this.kill = false;
   this.timer = 0;
   this.__proto__ = new Shape(x, y);
+  this.handleCollision = function(world){
+    world.removeShape(this);
+  }
   this.update = function(time_step){
     if(this.timer > this.lifetime){
       this.kill = true;
@@ -197,10 +249,17 @@ Bullet = function(x, y){
   this.move(this.origin);
 };
 
-Asteroid = function(x, y){
+BigAsteroid = function(x, y){
+  this.name = "asteroid";
   this.__proto__ = new Shape(x, y);
-  this.kill = false;
   this.vel = (new Point(1, 0)).multiply(100);
+  this.handleCollision = function(world){
+    world.removeShape(this);
+    world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
+    world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
+    world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
+  };
+
 
   this.points.push(new Point(0,50));
   this.points.push(new Point(50,0));
@@ -209,4 +268,41 @@ Asteroid = function(x, y){
   this.move(this.origin);
   this.vel.rotate(Math.random()*360, new Point(0, 0));
 }
+
+MediumAsteroid = function(x, y){
+  this.__proto__ = new BigAsteroid(x, y);
+  this.vel = (new Point(1, 0)).multiply(100);
+  this.handleCollision = function(world){
+    world.removeShape(this);
+    world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
+    world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
+    world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
+  };
+
+  this.points = [];
+  this.points.push(new Point(0,25));
+  this.points.push(new Point(25,0));
+  this.points.push(new Point(0,-25));
+  this.points.push(new Point(-25,0));
+  this.move(this.origin);
+  this.vel.rotate(Math.random()*360, new Point(0, 0));
+}
+
+SmallAsteroid = function(x, y){
+  this.__proto__ = new BigAsteroid(x, y);
+  this.vel = (new Point(1, 0)).multiply(100);
+  this.handleCollision = function(world){
+    world.removeShape(this);
+  };
+
+  this.points = [];
+  this.points.push(new Point(0,10));
+  this.points.push(new Point(10,0));
+  this.points.push(new Point(0,-10));
+  this.points.push(new Point(-10,0));
+  this.move(this.origin);
+  this.vel.rotate(Math.random()*360, new Point(0, 0));
+}
+
+
 

@@ -1,9 +1,13 @@
 ctx = document.getElementById("view").getContext("2d");
 world = new World(ctx, 1000, 500, "white");
 ship = new Ship(100, 100);
-asteroid = new Asteroid(0, 75);
+asteroid1 = new BigAsteroid(0, 75);
+asteroid2 = new BigAsteroid(0, 0);
+asteroid3 = new BigAsteroid(0, world.height);
 world.addShape(ship);
-world.addShape(asteroid);
+world.addShape(asteroid1);
+world.addShape(asteroid2);
+world.addShape(asteroid3);
 var keys = {left: false, up: false, right: false, space: false};
 
 document.onkeydown = keyDown;
@@ -52,7 +56,6 @@ function keyDown(e) {
   else if (e.keyCode == '32') {
     keys.space = true;
     world.addShape(ship.makeBullet());
-    console.log(world.shapes);
   }
 }
 
@@ -107,53 +110,45 @@ function handleBullets(){
   for (var i = 0; i < world.shapes.length; i++) {
     //TODO Find a better of way testing if bullet
     if(world.shapes[i].kill){
-      world.removeShape(i);
+      world.removeShape(world.shapes[i]);
     }
   };
 }
 
 function handleCollisions(){
-  //get the lines for each asteroid.
-  var lines = [];
-  var nodes = [];
-  var collision = false;
-  var test_point;
-  var test_line;
-  var left_side_count = 0;
-  var right_side_count = 0;
+  var i;
+  var j;
+  var bullet;
+  var bullets = [];
+  var asteroids = [];
+  var asteroid;
 
-  for (var i = 0; i < asteroid.points.length; i++) {
-    if (i === asteroid.points.length-1) {
-      lines.push(new Line(asteroid.points[i], asteroid.points[0]));
+  for (i = 0; i < world.shapes.length; i++) {
+    if(world.shapes[i].name === "bullet"){
+      bullets.push(world.shapes[i]);
     }
-    else{
-      lines.push(new Line(asteroid.points[i],asteroid.points[i+1]));
+    else if(world.shapes[i].name === "asteroid"){
+      asteroids.push(world.shapes[i]);
     }
   };
 
-  for (var i = 0; i < ship.points.length; i++) {
-    test_point = ship.points[i];
-    for (var j = 0; j < lines.length; j++) {
-      test_line = lines[j];
-      if( ( (test_point.y < test_line.point1.y) && (test_point.y > test_line.point2.y ) ) || ( (test_point.y < test_line.point2.y) && (test_point.y > test_line.point1.y) ) ){
-        nodes.push( test_line.xValueAt(test_point.y) );
+  for (i = 0; i < asteroids.length; i++) {
+    asteroid = asteroids[i];
+    //test if any bullets are in asteroid
+    for (j = 0; j < bullets.length; j++) {
+      bullet = bullets[j]
+      if(world.testForCollision(bullet, asteroid)){
+        bullet.handleCollision(world);
+        asteroid.handleCollision(world);
+        console.log(world.shapes)
       }
     };
-    if(nodes.length > 0){
-      for (var j = 0; j < nodes.length; j++) {
-        if( nodes[j] > test_point.x ){
-          ++right_side_count;
-        }
-        else{
-          ++left_side_count;
-        }
-      };
-      if( (right_side_count % 2 != 0) && (left_side_count % 2 != 0) && (left_side_count === right_side_count) ){
-        //console.log("collision found at: " + test_point.x + ", " + test_point.y);
-      }
+
+    //test if ship is in asteroid
+    if(world.testForCollision(ship, asteroid)){
+      console.log("ship collided with an asteroid");
     }
   };
-}
-
+};
 
 setInterval(loop, (world.stepAmt)*1000);
