@@ -3,7 +3,7 @@ World = function(ctx, width, height, color){
   this.width = width;
   this.height = height;
   this.background = color;
-  this.stepAmt = .01;
+  this.stepAmt = 0.01;
   this.shapes = [];
   var nextShapeID = 0;
 
@@ -18,12 +18,12 @@ World = function(ctx, width, height, color){
       if(this.shapes[i].id === shape.id){
         this.shapes.splice(i,1);
       }
-    };
+    }
   };
   this.update = function(){
     for (var i = 0; i < this.shapes.length; i++) {
       this.shapes[i].update(world.stepAmt);
-    };
+    }
   };
   this.setBackground = function(color){
     this.background = color;
@@ -41,7 +41,7 @@ World = function(ctx, width, height, color){
     if(this.shapes.length){
       for (var i = 0; i < this.shapes.length; i++) {
         this.shapes[i].draw(this.ctx);
-      };
+      }
     }
   };
 
@@ -53,44 +53,45 @@ World = function(ctx, width, height, color){
     var test_line;
     var left_side_count = 0;
     var right_side_count = 0;
+    var i;
+    var j;
 
-    for (var i = 0; i < shape2.points.length; i++) {
+    for (i = 0; i < shape2.points.length; i++) {
       if (i === shape2.points.length-1) {
         lines.push(new Line(shape2.points[i], shape2.points[0]));
       }
       else{
         lines.push(new Line(shape2.points[i],shape2.points[i+1]));
       }
-    };
+    }
 
-    for (var i = 0; i < shape1.points.length; i++) {
+    for (i = 0; i < shape1.points.length; i++) {
       test_point = shape1.points[i];
-      for (var j = 0; j < lines.length; j++) {
+      for (j = 0; j < lines.length; j++) {
         test_line = lines[j];
         if( ( (test_point.y < test_line.point1.y) && (test_point.y > test_line.point2.y ) ) || ( (test_point.y < test_line.point2.y) && (test_point.y > test_line.point1.y) ) ){
           nodes.push( test_line.xValueAt(test_point.y) );
         }
-      };
+      }
       if(nodes.length > 0){
-        for (var j = 0; j < nodes.length; j++) {
+        for (j = 0; j < nodes.length; j++) {
           if( nodes[j] > test_point.x ){
             ++right_side_count;
           }
           else{
             ++left_side_count;
           }
-        };
-        if( (right_side_count % 2 != 0) && (left_side_count % 2 != 0) && (left_side_count === right_side_count) ){
+        }
+        if( (right_side_count % 2 !== 0) && (left_side_count % 2 !== 0) && (left_side_count === right_side_count) ){
           return true;
         }
       }
-    };
-
+    }
   return false;
   };
 
-  this.setBackground(this.background)
-  this.resize(this.width, this.height)
+  this.setBackground(this.background);
+  this.resize(this.width, this.height);
 };
 
 Point = function(x, y){
@@ -105,27 +106,27 @@ Point = function(x, y){
   this.set = function(point){
     this.x = point.x;
     this.y = point.y;
-  }
+  };
   this.add = function(point){
-    return new Point(this.x + point.x, this.y + point.y)
-  }
+    return new Point(this.x + point.x, this.y + point.y);
+  };
   this.subtract = function(point){
     return new Point(this.x - point.x, this.y - point.y);
-  }
+  };
   this.multiply = function(amt){
     return new Point(this.x * amt, this.y * amt);
-  }
+  };
   this.normalize = function(){
     var mag = Math.sqrt( Math.pow(this.x,2) + Math.pow(this.y ,2) );
     return new Point(this.x/mag, this.y/mag);
-  }
+  };
   this.rotate = function(angle, origin){
     angle = angle * Math.PI / 180;
     var tempx = Math.cos(angle) * (this.x - origin.x) - Math.sin(angle) * (this.y - origin.y) + origin.x;
     var tempy = Math.sin(angle) * (this.x - origin.x) + Math.cos(angle) * (this.y - origin.y) + origin.y;
     this.x = tempx;
     this.y = tempy;
-  }
+  };
 };
 
 Line = function(point1, point2){
@@ -168,7 +169,20 @@ Shape = function(x,y){
     for (var i = 0; i < this.points.length; i++) {
       this.points[i] = this.points[i].add(this.origin);
     }
-  }
+  };
+  this.scale = function(factor){
+    var i;
+    for (i = 0; i < this.points.length; i++){
+      this.points[i] = this.points[i].subtract(this.origin).multiply(factor);
+    };
+    this.move(this.origin);
+  };
+  this.rotate = function(angle){
+    var i;
+    for (i = 0; i < this.points.length; i++){
+      this.points[i].rotate(angle, this.origin);
+    }
+  };
   this.updateAcc = function(){
     this.acc.set(this.force.multiply( 1 / this.mass ));
   };
@@ -187,7 +201,7 @@ Shape = function(x,y){
   };
 };
 
-function Ship(x, y){
+Ship = function(x, y){
   this.name = "ship";
   this.__proto__ = new Shape(x, y);
 
@@ -198,7 +212,7 @@ function Ship(x, y){
     }
     for (var i = 0; i < this.points.length; i++) {
       this.points[i].rotate(amt, this.origin);
-    };
+    }
   };
 
   this.thrust = function(){
@@ -249,60 +263,71 @@ Bullet = function(x, y){
   this.move(this.origin);
 };
 
-BigAsteroid = function(x, y){
+Particle = function(x, y){
+  this.__proto__ = new Bullet(x, y);
+  this.name = "particle";
+};
+
+Asteroid = function(x, y){
   this.name = "asteroid";
-  this.__proto__ = new Shape(x, y);
+  this.__proto__ = new Shape(x,y);
   this.vel = (new Point(1, 0)).multiply(100);
+  this.makeParticle = function(){
+    var particle = new Particle(this.origin.x, this.origin.y);
+    var velocity = new Point(1, 0);
+    var amt = 100;
+    velocity = velocity.multiply(amt);
+    particle.vel.set(velocity);
+    particle.vel.rotate(Math.random()*360, new Point(0, 0));
+    return particle;
+  };
   this.handleCollision = function(world){
     world.removeShape(this);
+    world.addShape(this.makeParticle());
+    world.addShape(this.makeParticle());
+    world.addShape(this.makeParticle());
+    world.addShape(this.makeParticle());
+  };
+
+
+  this.points.push(new Point(0,3));
+  this.points.push(new Point(.7, 2));
+  this.points.push(new Point(3, 4));
+  this.points.push(new Point(4, 2.2));
+  this.points.push(new Point(4.2, 0));
+  this.points.push(new Point(2.8, -3.2));
+  this.points.push(new Point(0, -3.5));
+  this.points.push(new Point(-2, -2,7));
+  this.points.push(new Point(-1, 1));
+  this.move(this.origin);
+  this.scale(40);
+  this.rotate(Math.random()*360);
+  this.vel.rotate(Math.random()*360, new Point(0, 0));
+};
+
+BigAsteroid = function(x, y){
+  this.__proto__ = new Asteroid(x, y);
+  this.handleCollision = function(world){
+    this.__proto__.handleCollision.call(this, world);
     world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
     world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
     world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
   };
-
-
-  this.points.push(new Point(0,50));
-  this.points.push(new Point(50,0));
-  this.points.push(new Point(0,-50));
-  this.points.push(new Point(-50,0));
-  this.move(this.origin);
-  this.vel.rotate(Math.random()*360, new Point(0, 0));
-}
+};
 
 MediumAsteroid = function(x, y){
-  this.__proto__ = new BigAsteroid(x, y);
-  this.vel = (new Point(1, 0)).multiply(100);
+  this.__proto__ = new Asteroid(x, y);
+  //this.vel = (new Point(1, 0)).multiply(100);
   this.handleCollision = function(world){
-    world.removeShape(this);
+    this.__proto__.handleCollision.call(this, world);
     world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
     world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
     world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
   };
-
-  this.points = [];
-  this.points.push(new Point(0,25));
-  this.points.push(new Point(25,0));
-  this.points.push(new Point(0,-25));
-  this.points.push(new Point(-25,0));
-  this.move(this.origin);
-  this.vel.rotate(Math.random()*360, new Point(0, 0));
-}
+  this.__proto__.scale.call(this, 1/2);
+};
 
 SmallAsteroid = function(x, y){
-  this.__proto__ = new BigAsteroid(x, y);
-  this.vel = (new Point(1, 0)).multiply(100);
-  this.handleCollision = function(world){
-    world.removeShape(this);
-  };
-
-  this.points = [];
-  this.points.push(new Point(0,10));
-  this.points.push(new Point(10,0));
-  this.points.push(new Point(0,-10));
-  this.points.push(new Point(-10,0));
-  this.move(this.origin);
-  this.vel.rotate(Math.random()*360, new Point(0, 0));
-}
-
-
-
+  this.__proto__ = new Asteroid(x, y);
+  this.__proto__.scale.call(this, 1/4);
+};
