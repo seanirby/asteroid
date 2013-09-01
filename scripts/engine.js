@@ -53,25 +53,27 @@ World = function(ctx, width, height, color){
   this.testForCollision = function(shape1, shape2){
     var lines = [];
     var nodes = [];
-    var collision = false;
     var test_point;
     var test_line;
-    var left_side_count = 0;
-    var right_side_count = 0;
+    var left_side_count;
+    var right_side_count;
     var i;
     var j;
 
     for (i = 0; i < shape2.points.length; i++) {
-      if (i === shape2.points.length-1) {
+      if (i === shape2.points.length - 1) {
         lines.push(new Line(shape2.points[i], shape2.points[0]));
       }
       else{
-        lines.push(new Line(shape2.points[i],shape2.points[i+1]));
+        lines.push(new Line(shape2.points[i], shape2.points[i+1]));
       }
     }
 
     for (i = 0; i < shape1.points.length; i++) {
       test_point = shape1.points[i];
+      left_side_count = 0;
+      right_side_count = 0;
+      nodes = [];
       for (j = 0; j < lines.length; j++) {
         test_line = lines[j];
         if( ( (test_point.y < test_line.point1.y) && (test_point.y > test_line.point2.y ) ) || ( (test_point.y < test_line.point2.y) && (test_point.y > test_line.point1.y) ) ){

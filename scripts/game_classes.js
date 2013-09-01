@@ -41,6 +41,7 @@ Ship = function(x, y){
     var fragment = new Fragment(point1.x, point1.y);
     var velocity = new Point(1, 0);
     var amt = 20;
+    fragment.__proto__.lifetime = 4;
     velocity = velocity.multiply(amt);
     fragment.vel.set(velocity);
     fragment.vel.rotate(Math.random()*360, new Point(0, 0));

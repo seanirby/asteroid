@@ -157,10 +157,9 @@ var Game={
         }
       };
 
-      //test if ship is in asteroid
       if(this.world.testForCollision(this.ship, asteroid)){
-        clearInterval(this.loopID);
         this.ship.handleCollision(this.world);
+        clearInterval(this.loopID);
         this.loopID = this.setIntervalWithContext(this.game_over_loop, this.world.stepAmt*1000, this);
       }
     }
