@@ -6,6 +6,8 @@ var Game={
     this.ship = new Ship(100, 100);
     this.lives = 3;
     this.score = 0;
+    this.main_text = "PRESS SPACE TO START";
+    this.state = "title"
     this.inputs =  {left: false,
                     up: false,
                     right: false,
@@ -27,6 +29,18 @@ var Game={
     this.handleBoundaryOverflow();
     this.handleCollisions();
     this.world.render();
+    this.drawText();
+  },
+
+  drawText: function(){
+    //Draw Title
+    this.ctx.font = "30px Arial";
+    this.ctx.fillStyle = "black";
+    this.ctx.textAlign = "center";
+    this.ctx.fillText(this.main_text, this.world.width/2, this.world.height/2);
+    this.ctx.font = "15px Arial";
+    this.ctx.textAlign = "left";
+    this.ctx.fillText(this.score, 10, 20);
   },
 
   game_over_loop: function(){
@@ -150,8 +164,7 @@ var Game={
       for (j = 0; j < bullets.length; j++) {
         bullet = bullets[j]
         if(this.world.testForCollision(bullet, asteroid)){
-          //Update score;
-
+          this.score += 20;
           bullet.handleCollision(this.world);
           asteroid.handleCollision(this.world);
         }
