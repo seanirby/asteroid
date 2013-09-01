@@ -22,7 +22,12 @@ World = function(ctx, width, height, color){
   };
   this.update = function(){
     for (var i = 0; i < this.shapes.length; i++) {
-      this.shapes[i].update(world.stepAmt);
+      if(this.shapes[i].kill){
+        this.shapes.splice(i,1);
+      }
+      else{
+        this.shapes[i].update(this.stepAmt);
+      }
     }
   };
   this.setBackground = function(color){
@@ -150,6 +155,9 @@ Shape = function(x,y){
   this.avg_acc = new Point(0,0);
 
   this.update = function(time_step){
+    if(this.name === "fragment"){
+      console.log(this);
+    }
     var oldAcc = this.acc;
     this.updatePos(time_step);
     this.updateAcc();
@@ -199,135 +207,4 @@ Shape = function(x,y){
       ctx.stroke();
     }
   };
-};
-
-Ship = function(x, y){
-  this.name = "ship";
-  this.__proto__ = new Shape(x, y);
-
-  this.rotate = function(direction){
-    var amt = 2.5;
-    if( direction === "left" ){
-      amt = amt * -1;
-    }
-    for (var i = 0; i < this.points.length; i++) {
-      this.points[i].rotate(amt, this.origin);
-    }
-  };
-
-  this.thrust = function(){
-    var force = new Point( this.points[0].subtract(this.origin) );
-    var amt = 500;
-    force = force.normalize().multiply(amt);
-    this.force.set(force);
-  };
-
-  this.makeBullet = function(){
-    var bullet = new Bullet(this.points[0].x, this.points[0].y);
-    var velocity = new Point( this.points[0].subtract(this.origin) );
-    var amt = 500;
-    velocity = velocity.normalize().multiply(amt);
-    bullet.vel.set(velocity);
-    return bullet;
-  };
-
-  this.points.push(new Point(0, 20));
-  this.points.push(new Point(10,-10));
-  this.points.push(new Point(-10, -10));
-  this.move(this.origin);
-};
-
-Bullet = function(x, y){
-  this.name = "bullet"
-  this.lifetime = 0.5;
-  this.kill = false;
-  this.timer = 0;
-  this.__proto__ = new Shape(x, y);
-  this.handleCollision = function(world){
-    world.removeShape(this);
-  }
-  this.update = function(time_step){
-    if(this.timer > this.lifetime){
-      this.kill = true;
-    }
-    else{
-      this.timer += time_step;
-    }
-    this.__proto__.update(time_step);
-  }
-
-  this.points.push(new Point(0,2));
-  this.points.push(new Point(2,0));
-  this.points.push(new Point(0,-2));
-  this.points.push(new Point(-2,0));
-  this.move(this.origin);
-};
-
-Particle = function(x, y){
-  this.__proto__ = new Bullet(x, y);
-  this.name = "particle";
-};
-
-Asteroid = function(x, y){
-  this.name = "asteroid";
-  this.__proto__ = new Shape(x,y);
-  this.vel = (new Point(1, 0)).multiply(100);
-  this.makeParticle = function(){
-    var particle = new Particle(this.origin.x, this.origin.y);
-    var velocity = new Point(1, 0);
-    var amt = 100;
-    velocity = velocity.multiply(amt);
-    particle.vel.set(velocity);
-    particle.vel.rotate(Math.random()*360, new Point(0, 0));
-    return particle;
-  };
-  this.handleCollision = function(world){
-    world.removeShape(this);
-    world.addShape(this.makeParticle());
-    world.addShape(this.makeParticle());
-    world.addShape(this.makeParticle());
-    world.addShape(this.makeParticle());
-  };
-
-
-  this.points.push(new Point(0,3));
-  this.points.push(new Point(.7, 2));
-  this.points.push(new Point(3, 4));
-  this.points.push(new Point(4, 2.2));
-  this.points.push(new Point(4.2, 0));
-  this.points.push(new Point(2.8, -3.2));
-  this.points.push(new Point(0, -3.5));
-  this.points.push(new Point(-2, -2,7));
-  this.points.push(new Point(-1, 1));
-  this.move(this.origin);
-  this.scale(40);
-  this.rotate(Math.random()*360);
-  this.vel.rotate(Math.random()*360, new Point(0, 0));
-};
-
-BigAsteroid = function(x, y){
-  this.__proto__ = new Asteroid(x, y);
-  this.handleCollision = function(world){
-    this.__proto__.handleCollision.call(this, world);
-    world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
-    world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
-    world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
-  };
-};
-
-MediumAsteroid = function(x, y){
-  this.__proto__ = new Asteroid(x, y);
-  //this.vel = (new Point(1, 0)).multiply(100);
-  this.handleCollision = function(world){
-    this.__proto__.handleCollision.call(this, world);
-    world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
-    world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
-    world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
-  };
-  this.__proto__.scale.call(this, 1/2);
-};
-
-SmallAsteroid = function(x, y){
-  this.__proto__ = new Asteroid(x, y);
-  this.__proto__.scale.call(this, 1/4);
 };
