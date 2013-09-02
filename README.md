@@ -2,7 +2,7 @@
 
 I wanted to familiarize with Javascript and game programming so I decided to write this Asteroids clone without using any external libraries.
 
-!(Asteroids Screenshot)[/images/asteroids_screenshot.png]
+![Asteroids Screenshot](/images/asteroids_screenshot.png)
 
 ##Setup
 Clone this repo and edit the root in server.rb so it points to the repo:
