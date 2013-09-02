@@ -2,10 +2,11 @@ var Game={
 
   init: function(){
     this.ctx = document.getElementById("view").getContext("2d");
-    this.world = new World(this.ctx, 1000, 500, "white");
+    this.world = new World(this.ctx, 780, 540, "white");
     this.ship = new Ship(0, 0);
     this.lives = 3;
     this.score = 0;
+    this.ready_to_spawn = true;
     this.main_text = "PRESS SPACE TO START";
     this.state = "title"
     this.next_asteroid_amt = 4;
@@ -27,6 +28,7 @@ var Game={
     this.world.update();
     this.handleInputs();
     this.handleBoundaryOverflow();
+
     if(this.state === "playing"){
       this.handleCollisions();
     }
@@ -41,19 +43,24 @@ var Game={
     }
     //Draw Score;
     this.drawScore();
+    this.drawLives();
+
+    if(this.state === "spawning" && this.ready_to_spawn){
+      this.spawnShip();
+    }
   },
 
   drawTitle: function(){
     this.ctx.font = "30px Arial";
     this.ctx.fillStyle = "black";
     this.ctx.textAlign = "center";
-    this.ctx.fillText(this.main_text, this.world.width/2, this.world.height/2);
+    this.ctx.fillText("ASTEROIDS", this.world.width/2, this.world.height/2);
   },
 
   drawScore: function(){
     this.ctx.font = "15px Arial";
     this.ctx.textAlign = "left";
-    this.ctx.fillText(this.score, 10, 20);
+    this.ctx.fillText("SCORE:  " + this.score, 10, 20);
   },
 
   drawGameOver: function(){
@@ -61,6 +68,12 @@ var Game={
     this.ctx.fillStyle = "black";
     this.ctx.textAlign = "center";
     this.ctx.fillText("GAME OVER", this.world.width/2, this.world.height/2);
+  },
+
+  drawLives: function(){
+    this.ctx.font = "15px Arial";
+    this.ctx.textAlign = "left";
+    this.ctx.fillText("LIVES:  " + this.lives, 10, 40)
   },
 
   start: function(){
@@ -134,10 +147,7 @@ var Game={
       this.init();
     }
     else if((this.state === "title") && (this.inputs.space)){
-      this.state = "playing";
-      this.ship = new Ship(this.world.width/2, this.world.height/2);
-      this.world.addShape(this.ship);
-      this.inputs.space = false;
+      this.state = "spawning";
     }
   },
   handleBoundaryOverflow: function(){
@@ -167,6 +177,34 @@ var Game={
           shape.points[j].y += this.world.height;
         }
       }
+    }
+  },
+  spawnShip: function(){
+    //get all asteroids
+    var i;
+    var asteroids = [];
+    var asteroid;
+    var spawn_cube = new SpawnCube(200, this.world.width/2, this.world.height/2);
+    var collision_count = 0;
+
+    for (i = 0; i < this.world.shapes.length; i++) {
+      if(this.world.shapes[i].name === "asteroid"){
+        asteroids.push(this.world.shapes[i]);
+      }
+    };
+
+    for (i = 0; i < asteroids.length; i++) {
+      asteroid = asteroids[i];
+      if( this.world.testForCollision(asteroid, spawn_cube) ){
+        ++collision_count;
+        break;
+      }
+    }
+
+    if(collision_count === 0){
+      this.ship = new Ship(this.world.width/2, this.world.height/2);
+      this.world.addShape(this.ship);
+      this.state = "playing";
     }
   },
   handleCollisions: function(){
@@ -203,8 +241,18 @@ var Game={
 
       if(this.world.testForCollision(this.ship, asteroid)){
         this.ship.handleCollision(this.world);
-        this.state = "game_over"
         asteroid.handleCollision(this.world);
+        if(this.lives > 0){
+          --this.lives
+          this.ready_to_spawn = false;
+          this.setTimeoutWithContext(function(){
+                                       this.ready_to_spawn = true;
+                                     }, 2000, this);
+          this.state = "spawning";
+        }
+        else{
+          this.state = "game_over";
+        }
       }
     }
   },

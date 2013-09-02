@@ -1,3 +1,14 @@
+SpawnCube = function(side, x, y){
+  this.name = "spawn_box";
+  this.__proto__ = new Shape(x, y);
+
+  this.points.push(new Point(0, side*Math.sqrt(2)/2));
+  this.points.push(new Point(side*Math.sqrt(2)/2, 0));
+  this.points.push(new Point(0, -side*Math.sqrt(2)/2));
+  this.points.push(new Point(-side*Math.sqrt(2)/2, 0));
+  this.move(this.origin);
+};
+
 Ship = function(x, y){
   this.name = "ship";
   this.__proto__ = new Shape(x, y);
@@ -55,6 +66,7 @@ Ship = function(x, y){
   this.points.push(new Point(10,-10));
   this.points.push(new Point(-10, -10));
   this.move(this.origin);
+  this.scale(1/2);
 };
 
 Bullet = function(x, y){
@@ -100,7 +112,7 @@ Fragment = function(x, y){
 Asteroid = function(x, y){
   this.name = "asteroid";
   this.__proto__ = new Shape(x,y);
-  this.vel = (new Point(1, 0)).multiply(100);
+  this.vel = (new Point(1, 0)).multiply(75);
   this.makeParticle = function(){
     var particle = new Particle(this.origin.x, this.origin.y);
     var velocity = new Point(1, 0);
