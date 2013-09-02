@@ -3,11 +3,12 @@ var Game={
   init: function(){
     this.ctx = document.getElementById("view").getContext("2d");
     this.world = new World(this.ctx, 1000, 500, "white");
-    this.ship = new Ship(100, 100);
+    this.ship = new Ship(0, 0);
     this.lives = 3;
     this.score = 0;
     this.main_text = "PRESS SPACE TO START";
     this.state = "title"
+    this.next_asteroid_amt = 4;
     this.inputs =  {left: false,
                     up: false,
                     right: false,
@@ -16,36 +17,50 @@ var Game={
                               38: "up",
                               39: "right",
                               32: "space"}};
-    this.world.addShape(this.ship);
-    this.world.addShape(new BigAsteroid(0, 0));
+    this.spawnAsteroids();
 
-    document.onkeyup = this.makeCallBackWithContext(this.keyUp, event, this);
-    document.onkeydown = this.makeCallBackWithContext(this.keyDown, event, this);
+    document.onkeyup = this.makeCallBackWithContext(this.keyUp, this);
+    document.onkeydown = this.makeCallBackWithContext(this.keyDown, this);
   },
 
   loop: function(){
     this.world.update();
     this.handleInputs();
     this.handleBoundaryOverflow();
-    this.handleCollisions();
+    if(this.state === "playing"){
+      this.handleCollisions();
+    }
     this.world.render();
-    this.drawText();
+
+    //If State = Title, draw title
+    if(this.state === "title"){
+      this.drawTitle();
+    }
+    if(this.state === "game_over"){
+      this.drawGameOver();
+    }
+    //Draw Score;
+    this.drawScore();
   },
 
-  drawText: function(){
-    //Draw Title
+  drawTitle: function(){
     this.ctx.font = "30px Arial";
     this.ctx.fillStyle = "black";
     this.ctx.textAlign = "center";
     this.ctx.fillText(this.main_text, this.world.width/2, this.world.height/2);
+  },
+
+  drawScore: function(){
     this.ctx.font = "15px Arial";
     this.ctx.textAlign = "left";
     this.ctx.fillText(this.score, 10, 20);
   },
 
-  game_over_loop: function(){
-    this.world.update();
-    this.world.render();
+  drawGameOver: function(){
+    this.ctx.font = "30px Arial";
+    this.ctx.fillStyle = "black";
+    this.ctx.textAlign = "center";
+    this.ctx.fillText("GAME OVER", this.world.width/2, this.world.height/2);
   },
 
   start: function(){
@@ -67,8 +82,8 @@ var Game={
     }, delay)
   },
 
-  makeCallBackWithContext: function(code, event, context){
-    return function(){
+  makeCallBackWithContext: function(code, context){
+    return function(event){
       code.call(context, event);
     };
   },
@@ -88,28 +103,41 @@ var Game={
     }
   },
   handleInputs: function(){
-    if(this.inputs.up){
-      this.ship.thrust();
-    }
-    else{
-      this.ship.force.x = 0;
-      this.ship.force.y = 0;
-    }
+    if(this.state === "playing"){
+      if(this.inputs.up){
+        this.ship.thrust();
+      }
+      else{
+        this.ship.force.x = 0;
+        this.ship.force.y = 0;
+      }
 
-    if(this.inputs.right){
-      this.ship.rotate("right");
-    }
+      if(this.inputs.right){
+        this.ship.rotate("right");
+      }
 
-    if(this.inputs.left){
-      this.ship.rotate("left");
-    }
+      if(this.inputs.left){
+        this.ship.rotate("left");
+      }
 
-    if(this.inputs.space && this.ship.cannon_ready){
-      this.world.addShape(this.ship.makeBullet());
-      this.ship.cannon_ready = false;
-      this.setTimeoutWithContext(function(){
-                  this.ship.cannon_ready = true;
-                }, this.ship.cannon_timeout*1000, this);
+      if(this.inputs.space && this.ship.cannon_ready){
+        this.world.addShape(this.ship.makeBullet());
+        this.ship.cannon_ready = false;
+        this.setTimeoutWithContext( function(){
+                                      this.ship.cannon_ready = true;
+                                    },this.ship.cannon_timeout*1000, this);
+      }
+    }
+    else if((this.state === "game_over") && (this.inputs.space)){
+      this.state = "title";
+      this.reset();
+      this.init();
+    }
+    else if((this.state === "title") && (this.inputs.space)){
+      this.state = "playing";
+      this.ship = new Ship(this.world.width/2, this.world.height/2);
+      this.world.addShape(this.ship);
+      this.inputs.space = false;
     }
   },
   handleBoundaryOverflow: function(){
@@ -158,9 +186,12 @@ var Game={
       }
     };
 
+    if(asteroids.length === 0 && this.state === "playing"){
+      this.spawnAsteroids();
+    }
+
     for (i = 0; i < asteroids.length; i++) {
       asteroid = asteroids[i];
-      //test if any bullets are in asteroid
       for (j = 0; j < bullets.length; j++) {
         bullet = bullets[j]
         if(this.world.testForCollision(bullet, asteroid)){
@@ -172,10 +203,17 @@ var Game={
 
       if(this.world.testForCollision(this.ship, asteroid)){
         this.ship.handleCollision(this.world);
-        clearInterval(this.loopID);
-        this.loopID = this.setIntervalWithContext(this.game_over_loop, this.world.stepAmt*1000, this);
+        this.state = "game_over"
+        asteroid.handleCollision(this.world);
       }
     }
+  },
+
+  spawnAsteroids: function(){
+    for (var i = 0; i < this.next_asteroid_amt; i++) {
+      this.world.addShape(new BigAsteroid(0, 0));
+    }
+    ++this.next_asteroid_amt
   }
 };
 

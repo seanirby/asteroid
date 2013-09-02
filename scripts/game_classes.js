@@ -59,7 +59,7 @@ Ship = function(x, y){
 
 Bullet = function(x, y){
   this.name = "bullet"
-  this.lifetime = 0.5;
+  this.lifetime = 0.75;
   this.kill = false;
   this.timer = 0;
   this.__proto__ = new Shape(x, y);
@@ -129,7 +129,7 @@ Asteroid = function(x, y){
   this.points.push(new Point(-2, -2,7));
   this.points.push(new Point(-1, 1));
   this.move(this.origin);
-  this.scale(40);
+  this.scale(20);
   this.rotate(Math.random()*360);
   this.vel.rotate(Math.random()*360, new Point(0, 0));
 };
@@ -146,7 +146,7 @@ BigAsteroid = function(x, y){
 
 MediumAsteroid = function(x, y){
   this.__proto__ = new Asteroid(x, y);
-  //this.vel = (new Point(1, 0)).multiply(100);
+  this.vel = this.vel.multiply(1.5);
   this.handleCollision = function(world){
     this.__proto__.handleCollision.call(this, world);
     world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
@@ -158,5 +158,6 @@ MediumAsteroid = function(x, y){
 
 SmallAsteroid = function(x, y){
   this.__proto__ = new Asteroid(x, y);
+  this.vel = this.vel.multiply(2);
   this.__proto__.scale.call(this, 1/4);
 };
