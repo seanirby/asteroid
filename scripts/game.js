@@ -55,10 +55,13 @@ var Game={
     this.ctx.fillStyle = "black";
     this.ctx.textAlign = "center";
     this.ctx.fillText("ASTEROIDS", this.world.width/2, this.world.height/2);
+    this.ctx.font = "15px Arial";
+    this.ctx.fillText("PRESS SPACEBAR TO START", this.world.width/2, this.world.height/2 + 20);
   },
 
   drawScore: function(){
     this.ctx.font = "15px Arial";
+    this.ctx.fillStyle = "black";
     this.ctx.textAlign = "left";
     this.ctx.fillText("SCORE:  " + this.score, 10, 20);
   },
@@ -68,19 +71,21 @@ var Game={
     this.ctx.fillStyle = "black";
     this.ctx.textAlign = "center";
     this.ctx.fillText("GAME OVER", this.world.width/2, this.world.height/2);
+    this.ctx.font = "15px Arial";
+    this.ctx.fillText("PRESS SPACEBAR TO RESET", this.world.width/2, this.world.height/2 + 20);
+
   },
 
   drawLives: function(){
     this.ctx.font = "15px Arial";
+    this.ctx.fillStyle = "black";
     this.ctx.textAlign = "left";
     this.ctx.fillText("LIVES:  " + this.lives, 10, 40)
   },
 
   start: function(){
+    clearInterval(this.loopID);
     this.loopID = this.setIntervalWithContext(this.loop, (this.world.stepAmt)*1000, this);
-  },
-
-  reset: function(){
   },
 
   setIntervalWithContext : function(code,delay,context){
@@ -142,9 +147,8 @@ var Game={
       }
     }
     else if((this.state === "game_over") && (this.inputs.space)){
-      this.state = "title";
-      this.reset();
       this.init();
+      this.state = "spawning";
     }
     else if((this.state === "title") && (this.inputs.space)){
       this.state = "spawning";
@@ -184,7 +188,7 @@ var Game={
     var i;
     var asteroids = [];
     var asteroid;
-    var spawn_cube = new SpawnCube(200, this.world.width/2, this.world.height/2);
+    var spawn_cube = new SpawnCube(100, this.world.width/2, this.world.height/2);
     var collision_count = 0;
 
     for (i = 0; i < this.world.shapes.length; i++) {
@@ -226,6 +230,9 @@ var Game={
 
     if(asteroids.length === 0 && this.state === "playing"){
       this.spawnAsteroids();
+      this.world.removeShape(this.ship);
+      this.state = "spawning";
+      this.spawnShip();
     }
 
     for (i = 0; i < asteroids.length; i++) {
