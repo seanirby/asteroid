@@ -1,6 +1,6 @@
 #Asteroids
 
-I wanted to familiarize with Javascript and game programming so I decided to write this Asteroids clone. For educational purposes, I decided not to use any external libraries.
+I wanted to familiarize myself with Javascript and game programming so I decided to write this Asteroids clone. For educational purposes, I decided not to use any external libraries.
 
 You can play the game [here](http://seanirby.github.io/asteroids/index.html).
 
