@@ -1,3 +1,4 @@
+//Used to ensure that the ship spawns in a safe zone.
 SpawnCube = function(side, x, y){
   this.name = "spawn_box";
   this.__proto__ = new Shape(x, y);
@@ -95,11 +96,13 @@ Bullet = function(x, y){
   this.move(this.origin);
 };
 
+//Used for asteroid explosions.
 Particle = function(x, y){
   this.__proto__ = new Bullet(x, y);
   this.name = "particle";
 };
 
+//Used for ship explosions.
 Fragment = function(x, y){
   this.__proto__ = new Bullet(x, y);
   this.name = "fragment";
@@ -109,6 +112,8 @@ Fragment = function(x, y){
   this.move(this.origin);
 }
 
+//Abstract asteroid class.  All sub-asteroids
+//modify the size and speed of this base class.
 Asteroid = function(x, y){
   this.name = "asteroid";
   this.__proto__ = new Shape(x,y);

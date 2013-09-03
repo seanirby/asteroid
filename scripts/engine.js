@@ -1,3 +1,7 @@
+//A world is responsible for holding the canvas context,
+//resizing the canvas, drawing onto the canvas, and
+//keeping track of all its shapes.
+
 World = function(ctx, width, height, color){
   this.ctx = ctx;
   this.width = width;
@@ -50,6 +54,7 @@ World = function(ctx, width, height, color){
     }
   };
 
+  //Tests to see if shape1 is is within shape2.
   this.testForCollision = function(shape1, shape2){
     var lines = [];
     var nodes = [];
@@ -101,6 +106,7 @@ World = function(ctx, width, height, color){
   this.resize(this.width, this.height);
 };
 
+//Point class used for vector calculations.
 Point = function(x, y){
   if(arguments.length === 1 && arguments[0] instanceof Point){
     this.x = arguments[0].x;
@@ -136,6 +142,7 @@ Point = function(x, y){
   };
 };
 
+//Used for collision calculations
 Line = function(point1, point2){
   this.point1 = point1;
   this.point2 = point2;
@@ -146,7 +153,8 @@ Line = function(point1, point2){
   };
 };
 
-
+//Game objects are defined as a shape.  Shapes are defined as a number
+//of points.
 Shape = function(x,y){
   this.origin = new Point(x, y);
   this.points = [];
