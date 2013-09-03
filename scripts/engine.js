@@ -12,7 +12,12 @@ World = function(ctx, width, height, color){
   var nextShapeID = 0;
 
   this.addShape = function(shape){
-    if(!shape.id){
+    if(shape instanceof Array && shape.length > 0){
+      for (var i = 0; i < shape.length; i++) {
+        this.addShape(shape[i]);
+      }
+    }
+    else if(!shape.id){
       shape.id = nextShapeID++;
       this.shapes.push(shape);
     }

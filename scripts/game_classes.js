@@ -44,9 +44,9 @@ Ship = function(x, y){
 
   this.handleCollision = function(world){
     world.removeShape(this);
-    world.addShape(this.makeFragment(this.points[0], this.points[1]));
-    world.addShape(this.makeFragment(this.points[1], this.points[2]));
-    world.addShape(this.makeFragment(this.points[2], this.points[0]));
+    world.addShape([ this.makeFragment(this.points[0], this.points[1]),
+                     this.makeFragment(this.points[1], this.points[2]),
+                     this.makeFragment(this.points[2], this.points[0])]);
   };
 
   this.makeFragment = function(point1, point2){
@@ -61,7 +61,7 @@ Ship = function(x, y){
       fragment.points[i].rotate(Math.random()*360, fragment.origin);
     };
     return fragment;
-  }
+  };
 
   this.points.push(new Point(0, 20));
   this.points.push(new Point(10,-10));
@@ -71,14 +71,14 @@ Ship = function(x, y){
 };
 
 Bullet = function(x, y){
-  this.name = "bullet"
+  this.name = "bullet";
   this.lifetime = 0.75;
   this.kill = false;
   this.timer = 0;
   this.__proto__ = new Shape(x, y);
   this.handleCollision = function(world){
     world.removeShape(this);
-  }
+  };
   this.update = function(time_step){
     if(this.timer > this.lifetime){
       this.kill = true;
@@ -87,7 +87,7 @@ Bullet = function(x, y){
       this.timer += time_step;
     }
     this.__proto__.update(time_step);
-  }
+  };
 
   this.points.push(new Point(0,2));
   this.points.push(new Point(2,0));
@@ -110,7 +110,7 @@ Fragment = function(x, y){
   this.points.push(new Point(0,10));
   this.points.push(new Point(0,20));
   this.move(this.origin);
-}
+};
 
 //Abstract asteroid class.  All sub-asteroids
 //modify the size and speed of this base class.
@@ -120,27 +120,29 @@ Asteroid = function(x, y){
   this.vel.set((new Point(1, 0)).multiply(75));
   this.rot_amt = Math.random()*20;
 
-  this.makeParticle = function(){
-    var particle = new Particle(this.origin.x, this.origin.y);
-    var velocity = new Point(1, 0);
+  this.makeParticles = function(){
     var amt = 100;
-    velocity = velocity.multiply(amt);
-    particle.vel.set(velocity);
-    particle.vel.rotate(Math.random()*360, new Point(0, 0));
-    return particle;
+    var number_of_particles = 4;
+    var particles = [];
+    for (var i = 0; i < number_of_particles; i++) {
+      var particle = new Particle(this.origin.x, this.origin.y);
+      var velocity = new Point(1, 0);
+      velocity = velocity.multiply(amt);
+      particle.vel.set(velocity);
+      particle.vel.rotate(Math.random()*360, new Point(0, 0));
+      particles.push(particle);
+    };
+    return particles;
   };
   this.handleCollision = function(world){
     world.removeShape(this);
-    world.addShape(this.makeParticle());
-    world.addShape(this.makeParticle());
-    world.addShape(this.makeParticle());
-    world.addShape(this.makeParticle());
+    world.addShape(this.makeParticles());
   };
 
   this.update = function(time_step){
     this.__proto__.update(time_step);
     this.rotate(this.rot_amt*time_step);
-  }
+  };
 
 
   this.points.push(new Point(0,3));
@@ -162,9 +164,9 @@ BigAsteroid = function(x, y){
   this.__proto__ = new Asteroid(x, y);
   this.handleCollision = function(world){
     this.__proto__.handleCollision.call(this, world);
-    world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
-    world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
-    world.addShape(new MediumAsteroid(this.origin.x, this.origin.y));
+    world.addShape([new MediumAsteroid(this.origin.x, this.origin.y),
+                    new MediumAsteroid(this.origin.x, this.origin.y),
+                    new MediumAsteroid(this.origin.x, this.origin.y)]);
   };
 };
 
@@ -173,9 +175,9 @@ MediumAsteroid = function(x, y){
   this.vel = this.vel.multiply(Math.random() * (1.5 - 0.75) + 0.75);
   this.handleCollision = function(world){
     this.__proto__.handleCollision.call(this, world);
-    world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
-    world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
-    world.addShape(new SmallAsteroid(this.origin.x, this.origin.y));
+    world.addShape([new SmallAsteroid(this.origin.x, this.origin.y),
+                    new SmallAsteroid(this.origin.x, this.origin.y),
+                    new SmallAsteroid(this.origin.x, this.origin.y)]);
   };
   this.__proto__.scale.call(this, 1/2);
 };
