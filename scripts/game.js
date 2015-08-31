@@ -11,7 +11,7 @@
 //
 //  "game_over" - All lives lost.  Next staet is "title".
 
-var Game={
+var Game = {
 
   init: function(){
     this.ctx = document.getElementById("view").getContext("2d");
@@ -123,6 +123,7 @@ var Game={
       this.inputs[key] = true;
     }
   },
+
   keyUp: function(e){
     e = e || window.event;
     var key = this.inputs.mapping[e.keyCode];
@@ -130,6 +131,7 @@ var Game={
       this.inputs[key] = false;
     }
   },
+
   handleInputs: function(){
     if(this.state === "playing"){
       if(this.inputs.up){
@@ -164,6 +166,7 @@ var Game={
       this.state = "spawning";
     }
   },
+
   //This function creates a wraparound effect so objects moving
   //offscreen are reset to opposite screen edge.
   handleBoundaryOverflow: function(){
@@ -195,13 +198,14 @@ var Game={
       }
     }
   },
+
   spawnShip: function(){
     //get all asteroids
-    var i;
-    var asteroids = [];
-    var asteroid;
-    var spawn_cube = new SpawnCube(100, this.world.width/2, this.world.height/2);
-    var collision_count = 0;
+    var i,
+      asteroids = [],
+      asteroid,
+      spawn_cube = new SpawnCube(100, this.world.width/2, this.world.height/2),
+      collision_count = 0;
 
     for (i = 0; i < this.world.shapes.length; i++) {
       if(this.world.shapes[i].name === "asteroid"){
@@ -223,13 +227,14 @@ var Game={
       this.state = "playing";
     }
   },
+
   handleCollisions: function(){
-    var i;
-    var j;
-    var bullet;
-    var bullets = [];
-    var asteroids = [];
-    var asteroid;
+    var i,
+      j,
+      bullet,
+      bullets = [],
+      asteroids = [],
+      asteroid;
 
     for (i = 0; i < this.world.shapes.length; i++) {
       if(this.world.shapes[i].name === "bullet"){
@@ -277,6 +282,7 @@ var Game={
       }
     }
   },
+
   spawnAsteroids: function(){
     for (var i = 0; i < this.next_asteroid_amt; i++) {
       this.world.addShape(new BigAsteroid(0, 0));
